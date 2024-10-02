@@ -22,9 +22,17 @@ def extract_rates(span_id):
         rates_text = rates_text[0]
         match = re.search(r'(\d+)/(\d+)', rates_text)
         if match:
-            upload_rate, download_rate = match.groups()
-            return int(upload_rate), int(download_rate)
+            rate_1, rate_2 = match.groups()
+            return int(rate_1), int(rate_2)
     return None, None
+
+def extract_single_value(span_id):
+    value = find_all(S(f'#{span_id}'))
+    if value:
+        value = [rate.web_element.text for rate in value]
+        value = value[0]
+        return value
+    return None
 
 # Function to scrape metrics from the router
 def scrape_metrics():
@@ -37,6 +45,7 @@ def scrape_metrics():
 
     # Start the browser
     driver = start_chrome(URL, headless=True, options=chrome_options)
+    # driver = start_firefox()
 
     try:
         go_to(URL)
@@ -60,6 +69,11 @@ def scrape_metrics():
         metrics['inp_upload'], metrics['inp_download'] = extract_rates('cinp\\:0')
         metrics['crc_upload'], metrics['crc_download'] = extract_rates('ccrc\\:0')
         metrics['fec_upload'], metrics['fec_download'] = extract_rates('cfec\\:0')
+        metrics['uptime'] = extract_single_value('cststart\\:0')
+        metrics['link_status'] = extract_single_value('cStatus\\:0')
+        metrics['modulation_type'] = extract_single_value('cModule_type\\:0')
+        metrics['profile'] = extract_single_value('cprofile\\:0')
+        metrics['link_encap'] = extract_single_value('clinkencap\\:0')
 
     finally:
         driver.quit()
@@ -131,6 +145,21 @@ fec_upload {metrics.get('fec_upload', 0)}
 # HELP fec_download FEC errors download
 # TYPE fec_download gauge
 fec_download {metrics.get('fec_download', 0)}
+# HELP uptime xDSL connection
+# TYPE uptime gauge
+uptime {metrics.get('uptime', 0)}
+# HELP link status connection
+# TYPE link_status gauge
+link_status {metrics.get('link_status', 0)}
+# HELP modulation type xDSL connection
+# TYPE modulation_type gauge
+modulation_type {metrics.get('modulation_type', 0)}
+# HELP profile xDSL connection
+# TYPE profile gauge
+profile {metrics.get('profile', 0)}
+# HELP link_encap xDSL connection
+# TYPE link_encap gauge
+link_encap {metrics.get('link_encap', 0)}
 """
         self.wfile.write(response.encode())
 
@@ -138,7 +167,7 @@ fec_download {metrics.get('fec_download', 0)}
 def periodic_scrape(interval):
     while True:
         scrape_metrics()
-        print("Done scraping !")
+        print("Done scraping !!!")
         time.sleep(interval)
 
 # Start the HTTP server in a separate thread
