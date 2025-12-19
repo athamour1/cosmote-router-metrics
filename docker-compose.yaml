@@ -1,0 +1,93 @@
+
+networks:
+  router_metrics_network:
+    driver: bridge
+
+services:
+  # ZTE H1600 Router Metrics
+  zte_metrics:
+    build:
+      context: ./ZTE-H1600
+      dockerfile: Dockerfile
+    container_name: zte_h1600_metrics
+    environment:
+      - ROUTER_URL=${ZTE_ROUTER_URL}
+      - ROUTER_USERNAME=${ZTE_ROUTER_USERNAME}
+      - ROUTER_PASSWORD=${ZTE_ROUTER_PASSWORD}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - router_metrics_network
+
+  # Sercom Speedport Plus Router Metrics
+  speedport_metrics:
+    build:
+      context: ./Sercom-Speedport-Plus
+      dockerfile: Dockerfile
+    container_name: speedport_plus_metrics
+    environment:
+      - ROUTER_URL=${SPEEDPORT_ROUTER_URL}
+      - STATS_URL=${SPEEDPORT_STATS_URL}
+      - ROUTER_USERNAME=${SPEEDPORT_ROUTER_USERNAME}
+      - ROUTER_PASSWORD=${SPEEDPORT_ROUTER_PASSWORD}
+      - SCRAPE_INTERVAL=${SPEEDPORT_SCRAPE_INTERVAL:-60}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - router_metrics_network
+
+  # Prometheus for collecting metrics from both routers
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:z
+      - prometheus-data:/prometheus
+    ports:
+      - "9090:9090"
+    restart: unless-stopped
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+      - '--storage.tsdb.retention.time=30d'
+    networks:
+      - router_metrics_network
+    depends_on:
+      - zte_metrics
+      - speedport_metrics
+
+  # Grafana for visualization
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
+      - GF_INSTALL_PLUGINS=
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
+      - grafana-data:/var/lib/grafana
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+    depends_on:
+      - prometheus
+    networks:
+      - router_metrics_network
+
+volumes:
+  prometheus-data:
+  grafana-data:

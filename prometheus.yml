@@ -1,0 +1,20 @@
+global:
+  scrape_interval: 30s
+  evaluation_interval: 30s
+
+scrape_configs:
+  # ZTE H1600 Router Metrics
+  - job_name: 'zte_h1600'
+    static_configs:
+      - targets: ['zte_h1600_metrics:8000']
+        labels:
+          router: 'ZTE-H1600'
+          location: 'home'
+
+  # Sercom Speedport Plus Router Metrics
+  - job_name: 'speedport_plus'
+    static_configs:
+      - targets: ['speedport_plus_metrics:8000']
+        labels:
+          router: 'Speedport-Plus'
+          location: 'home'

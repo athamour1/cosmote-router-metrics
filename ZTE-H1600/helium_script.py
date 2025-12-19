@@ -99,8 +99,16 @@ def scrape_metrics():
 
         # Extract rates and store them in the metrics dictionary
         print("Extracting metrics...")
-        metrics['actual_upload'], metrics['actual_download'] = extract_rates('crate\\:0')
-        metrics['attainable_upload'], metrics['attainable_download'] = extract_rates('cmaxrate\\:0')
+        
+        def to_bps(val):
+            return val * 1000 if val is not None else 0
+
+        up, down = extract_rates('crate\\:0')
+        metrics['actual_upload'], metrics['actual_download'] = to_bps(up), to_bps(down)
+        
+        up, down = extract_rates('cmaxrate\\:0')
+        metrics['attainable_upload'], metrics['attainable_download'] = to_bps(up), to_bps(down)
+        
         metrics['noise_margin_upload'], metrics['noise_margin_download'] = extract_rates('cmargin\\:0')
         metrics['attenuation_upload'], metrics['attenuation_download'] = extract_rates('cattenuation\\:0')
         metrics['power_upload'], metrics['power_download'] = extract_rates('cpower\\:0')

@@ -1,437 +1,242 @@
-<div align="center">
+# 🌐 COSMOTE Router Metrics - Production Setup
 
-# 📡 Cosmote Router Metrics Monitoring
+A comprehensive monitoring solution for tracking metrics from multiple COSMOTE routers simultaneously using **Prometheus** and **Grafana**.
 
-### 🚀 Real-Time DSL/VDSL Performance Monitoring & Visualization
+## 📊 Supported Routers
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
-[![Prometheus](https://img.shields.io/badge/Prometheus-Metrics-E6522C?logo=prometheus&logoColor=white)](https://prometheus.io/)
-[![Grafana](https://img.shields.io/badge/Grafana-Dashboard-F46800?logo=grafana&logoColor=white)](https://grafana.com/)
-[![Python](https://img.shields.io/badge/Python-3.x-3776AB?logo=python&logoColor=white)](https://www.python.org/)
-
-**Automated web scraping solution that transforms your router's web interface into beautiful, actionable metrics dashboards**
-
-[Quick Start](#-quick-start) • [Features](#-features) • [Architecture](#-architecture) • [Documentation](#-supported-routers)
-
-</div>
-
----
-
-## ✨ Features at a Glance
-
-<table>
-<tr>
-<td width="50%">
-
-### 🤖 **Automated Collection**
-Headless Chrome scrapes your router every 60 seconds—no manual intervention needed.
-
-### 📊 **Professional Dashboards**
-Pre-configured Grafana dashboards auto-provision on startup with stunning visualizations.
-
-### 🐳 **One-Command Deploy**
-Single `docker compose up -d` deploys the entire monitoring stack.
-
-</td>
-<td width="50%">
-
-### 💾 **Persistent Storage**
-Full metric history with automatic retention and container-safe persistence.
-
-### 🏥 **Health Monitoring**
-Built-in staleness detection and health checks ensure reliable data flow.
-
-### 🔄 **Dual Router Support**
-Monitor multiple routers simultaneously on different ports.
-
-</td>
-</tr>
-</table>
-
----
-
-## 🎯 Supported Routers
-
-### 📟 ZTE-H1600
-> **Full-Featured DSL Monitoring** with 20+ comprehensive metrics
-
-<details open>
-<summary><b>📊 Collected Metrics</b></summary>
-
-- 🚀 Actual & Attainable upload/download rates
-- 📡 Noise margin (SNR)
-- 📉 Line attenuation
-- ⚡ Output power
-- 🔄 Interleave depth and delay
-- 🛡️ Impulse Noise Protection (INP)
-- ⚠️ CRC and FEC errors
-- ⏱️ Uptime, link status, modulation type, profile
-
-</details>
-
-**🌐 Access Points:**
-- 📊 Grafana Dashboard: [`http://localhost:3000`](http://localhost:3000)
-- 🔍 Prometheus: [`http://localhost:9090`](http://localhost:9090)
-- 📈 Raw Metrics: [`http://localhost:8000`](http://localhost:8000)
-
-📖 **[→ Full ZTE-H1600 Documentation](ZTE-H1600/README.md)**
-
----
-
-### 🌐 Sercom Speedport Plus
-> **Streamlined VDSL Monitoring** with 10 essential metrics
-
-<details open>
-<summary><b>📊 Collected Metrics</b></summary>
-
-- 🚀 DSL upstream/downstream speeds
-- 📡 Signal-to-Noise Ratio (SNR) - Up/Down
-- 📉 Line Attenuation - Up/Down
-- ⚠️ CRC and FEC errors
-- ⏱️ System uptime
-- 🔧 Connection info (transmission mode, firmware)
-
-</details>
-
-**🌐 Access Points:**
-- 📊 Grafana Dashboard: [`http://localhost:3001`](http://localhost:3001)
-- 🔍 Prometheus: [`http://localhost:9091`](http://localhost:9091)
-- 📈 Raw Metrics: [`http://localhost:8001`](http://localhost:8001)
-
-📖 **[→ Full Sercom Speedport Plus Documentation](Sercom-Speedport-Plus/README.md)**
-
----
+- **ZTE H1600** - Metrics exposed on port 8001
+- **Sercom Speedport Plus** - Metrics exposed on port 8002
 
 ## 🚀 Quick Start
 
-### ⚡ Prerequisites
+### Prerequisites
 
-| Requirement | Description |
-|------------|-------------|
-| 🐳 **Docker** | Container runtime |
-| 🔧 **Docker Compose** | Multi-container orchestration |
-| 🌐 **Router Access** | Admin credentials for your router |
+- Docker & Docker Compose installed
+- Access to both routers on your network
 
-### 📦 Installation
+### Setup Instructions
 
-```bash
-# 1️⃣ Clone the repository
-git clone https://github.com/athamour1/cosmote-router-metrics.git
-cd cosmote-router-metrics
+1. **Clone the repository:**
+   ```bash
+   git clone <repository-url>
+   cd cosmote-router-metrics
+   ```
 
-# 2️⃣ Choose your router implementation
-cd ZTE-H1600              # For ZTE routers
-# OR
-cd Sercom-Speedport-Plus  # For Sercom routers
+2. **Configure environment variables:**
+   ```bash
+   cp .env.example .env
+   ```
+   
+   Edit `.env` file with your router credentials and URLs:
+   ```env
+   # ZTE H1600 Configuration
+   ZTE_ROUTER_URL=http://192.168.1.1
+   ZTE_ROUTER_USERNAME=admin
+   ZTE_ROUTER_PASSWORD=your_password
+   
+   # Speedport Plus Configuration
+   SPEEDPORT_ROUTER_URL=http://192.168.2.1
+   SPEEDPORT_STATS_URL=http://192.168.2.1/data/Status.json
+   SPEEDPORT_ROUTER_USERNAME=admin
+   SPEEDPORT_ROUTER_PASSWORD=your_password
+   ```
 
-# 3️⃣ Configure your credentials
-cp .env.example .env
-nano .env  # Edit with your router IP, username, and password
+3. **Start the monitoring stack:**
+   ```bash
+   docker-compose up -d
+   ```
 
-# 4️⃣ Launch the stack 🚀
-docker compose up -d
+4. **Access the dashboards:**
+   - **Grafana Dashboard**: http://localhost:3000
+     - Default credentials: `admin` / `admin` (change in `.env`)
+   - **Prometheus**: http://localhost:9090
 
-# 5️⃣ Access Grafana
-# Visit http://localhost:3000 (or 3001 for Sercom)
-# Default login: admin / admin
+
+## 📈 Available Dashboards
+
+Three Grafana dashboards are automatically provisioned:
+
+### 1. **COSMOTE Routers - Combined Dashboard** (Default)
+Displays metrics from both routers side by side for easy comparison:
+- Speed gauges for both routers (ZTE & Speedport)
+- Historical speed trends
+- SNR and attenuation metrics
+- CRC error monitoring
+
+### 2. **ZTE H1600 - Individual Dashboard**
+Dedicated dashboard for ZTE H1600 router with:
+- Download/upload speed monitoring
+- Noise margin (SNR) tracking
+- Line attenuation measurements
+- CRC error statistics
+- Power level indicators
+
+### 3. **Speedport Plus - Individual Dashboard**
+Dedicated dashboard for Sercom Speedport Plus router with:
+- DSL speed monitoring (downstream/upstream)
+- SNR quality metrics
+- Attenuation tracking
+- CRC and FEC error monitoring
+- System uptime display
+
+## 🔧 Architecture
+
+```
+┌─────────────────────────────────────────────────────┐
+│                   Docker Network                     │
+│                                                      │
+│  ┌──────────────┐      ┌──────────────┐            │
+│  │ ZTE H1600    │      │ Speedport    │            │
+│  │ Exporter     │      │ Exporter     │            │
+│  │ :8001        │      │ :8002        │            │
+│  └──────┬───────┘      └──────┬───────┘            │
+│         │                     │                     │
+│         └──────────┬──────────┘                     │
+│                    │                                │
+│              ┌─────▼──────┐                         │
+│              │ Prometheus │                         │
+│              │   :9090    │                         │
+│              └─────┬──────┘                         │
+│                    │                                │
+│              ┌─────▼──────┐                         │
+│              │  Grafana   │                         │
+│              │   :3000    │                         │
+│              └────────────┘                         │
+└─────────────────────────────────────────────────────┘
 ```
 
-> [!TIP]
-> On first run, Grafana will prompt you to change the default password. Choose a strong password for production use!
-
----
-
-## 🏗️ Architecture
-
-```
-╔══════════════════════════════════════════════════════════════╗
-║                    MONITORING PIPELINE                        ║
-╚══════════════════════════════════════════════════════════════╝
-
-    🌐 Router Web Interface
-         │
-         │ ◄─── 🤖 Selenium WebDriver (Chrome Headless)
-         │      Scrapes every 60 seconds
-         ▼
-    📝 Python Scraper
-       (Helium Framework)
-         │
-         │ ◄─── Extracts & normalizes metrics
-         │
-         ▼
-    🌍 HTTP Metrics Server
-       (Port 8000/8001)
-         │
-         │ ◄─── Exposes Prometheus /metrics endpoint
-         │
-         ▼
-    📊 Prometheus TSDB
-       (Port 9090/9091)
-         │
-         │ ◄─── Scrapes, stores & queries metrics
-         │
-         ▼
-    📈 Grafana Dashboards
-       (Port 3000/3001)
-         │
-         └─── 👁️ Beautiful real-time visualizations
-```
-
----
-
-## 📂 Project Structure
+## 📁 Project Structure
 
 ```
 cosmote-router-metrics/
-│
-├── 📄 README.md                       # You are here!
-│
-├── 📁 ZTE-H1600/                      # ZTE Router Implementation
-│   ├── 🐍 helium_script.py            # Selenium scraper script
-│   ├── 🐳 docker-compose.yaml         # Container orchestration
-│   ├── 📦 Dockerfile                  # Custom image build
-│   ├── ⚙️  prometheus.yml             # Metrics scraping config
-│   ├── 📁 grafana/                    # Dashboard definitions
-│   │   └── provisioning/
-│   ├── 📖 README.md                   # Detailed documentation
-│   └── 💡 IMPROVEMENTS.md             # Future enhancements
-│
-└── 📁 Sercom-Speedport-Plus/          # Sercom Router Implementation
-    ├── 🐍 speedport_script.py         # Selenium scraper script
-    ├── 🐳 docker-compose.yaml         # Container orchestration
-    ├── 📦 Dockerfile                  # Custom image build
-    ├── ⚙️  prometheus.yml             # Metrics scraping config
-    ├── 📁 grafana/                    # Dashboard definitions
-    │   └── provisioning/
-    └── 📖 README.md                   # Detailed documentation
+├── docker-compose.yaml           # Production compose file
+├── prometheus.yml                # Prometheus configuration
+├── .env.example                  # Environment variables template
+├── grafana/
+│   ├── provisioning/
+│   │   ├── datasources/
+│   │   │   └── prometheus.yaml   # Prometheus datasource
+│   │   └── dashboards/
+│   │       └── default.yaml      # Dashboard provisioning
+│   └── dashboards/
+│       ├── combined-routers.json # Combined dashboard (both routers)
+│       ├── zte-individual.json   # ZTE H1600 individual dashboard
+│       └── speedport-individual.json # Speedport Plus individual dashboard
+├── ZTE-H1600/                    # ZTE router exporter
+└── Sercom-Speedport-Plus/        # Speedport router exporter
 ```
 
----
+## 🛠️ Management Commands
 
-## 🔍 Router Comparison
-
-| Feature | 📟 ZTE-H1600 | 🌐 Sercom Speedport Plus |
-|---------|:------------:|:------------------------:|
-| **📊 Metrics** | 20+ detailed | 10 essential |
-| **🧩 Complexity** | High (tab navigation) | Medium (single page) |
-| **🔐 Login** | Always required | Conditional |
-| **🎯 Parsing** | Element IDs | HTML tables |
-| **🔌 Ports** | 8000, 9090, 3000 | 8001, 9091, 3001 |
-| **💼 Best For** | Deep diagnostics | Quick monitoring |
-| **⚙️ Setup Time** | ~5 minutes | ~3 minutes |
-
----
-
-## 🎭 Running Both Routers
-
-> [!IMPORTANT]
-> Each implementation uses different ports, allowing simultaneous monitoring of multiple routers!
-
+### Start all services
 ```bash
-# 🖥️ Terminal 1: Start ZTE-H1600
-cd ZTE-H1600
-docker compose up -d
-
-# 🖥️ Terminal 2: Start Sercom Speedport Plus
-cd Sercom-Speedport-Plus
-docker compose up -d
+docker-compose up -d
 ```
 
-**Access Your Dashboards:**
-- 📟 ZTE-H1600: [`http://localhost:3000`](http://localhost:3000)
-- 🌐 Speedport Plus: [`http://localhost:3001`](http://localhost:3001)
-
----
-
-## 🛠️ Troubleshooting
-
-<details>
-<summary><b>🔄 Container Keeps Restarting</b></summary>
-
+### View logs
 ```bash
-# Check container logs
-docker compose logs -f <service_name>
+# All services
+docker-compose logs -f
+
+# Specific service
+docker-compose logs -f zte_metrics
+docker-compose logs -f speedport_metrics
+docker-compose logs -f prometheus
+docker-compose logs -f grafana
 ```
 
-**Common causes:**
-- ❌ Invalid router credentials in `.env`
-- ❌ Wrong router IP address
-- ❌ Router web interface not accessible
-- ❌ Network connectivity issues
+### Stop all services
+```bash
+docker-compose down
+```
 
-</details>
+### Stop and remove all data
+```bash
+docker-compose down -v
+```
 
-<details>
-<summary><b>📊 Dashboard Shows "No Data"</b></summary>
+### Restart a specific service
+```bash
+docker-compose restart zte_metrics
+docker-compose restart speedport_metrics
+```
 
-**Verification steps:**
+### Check service health
+```bash
+docker-compose ps
+```
 
-1. **Check Prometheus targets:**
-   - Visit [`http://localhost:9090/targets`](http://localhost:9090/targets) (or 9091)
-   - All targets should show `UP` status
+## 🔍 Troubleshooting
 
-2. **Verify metrics endpoint:**
-   - Visit [`http://localhost:8000/metrics`](http://localhost:8000/metrics) (or 8001)
-   - Should display raw Prometheus metrics
+### No data in Grafana
 
-3. **Check scrape success:**
-   ```promql
-   scrape_success
+1. **Check metrics endpoints are accessible:**
+   ```bash
+   # Check from inside the containers (ports are not exposed to host)
+   docker exec zte_h1600_metrics curl -s http://localhost:8000/metrics | head
+   docker exec speedport_plus_metrics curl -s http://localhost:8000/metrics | head
    ```
-   Should return `1` (not `0`)
 
-> [!TIP]
-> Wait 2-3 minutes after startup for initial data to appear!
+2. **Verify Prometheus is scraping:**
+   - Visit http://localhost:9090/targets
+   - Both targets should show as "UP"
 
-</details>
+3. **Check container logs:**
+   ```bash
+   docker-compose logs zte_metrics
+   docker-compose logs speedport_metrics
+   ```
 
-<details>
-<summary><b>⚠️ Metrics Are All Zero</b></summary>
+### Connection errors
 
-**Possible causes:**
-- 🔄 Router firmware was updated (HTML structure changed)
-- 🏷️ Element selectors no longer match
-- 🔐 Login flow has changed
+- Verify router URLs are correct in `.env`
+- Ensure routers are accessible from Docker network
+- Check credentials are correct
 
-**Fix:**
-```bash
-# Check scraper logs
-docker compose logs -f router-metrics
-```
+### Dashboard not loading
 
-Look for element extraction errors and update CSS selectors in the Python script accordingly.
+1. **Restart Grafana:**
+   ```bash
+   docker-compose restart grafana
+   ```
 
-</details>
+2. **Check Grafana logs:**
+   ```bash
+   docker-compose logs grafana
+   ```
 
-<details>
-<summary><b>🆘 Need More Help?</b></summary>
+## 📊 Metrics Collected
 
-1. 📖 Review router-specific README in implementation directory
-2. 💡 Check `IMPROVEMENTS.md` for known issues
-3. 🐛 Open a GitHub issue with:
-   - Container logs
-   - `.env` configuration (redact credentials!)
-   - Router model and firmware version
+### ZTE H1600
+- `actual_download` - Download speed (bps)
+- `actual_upload` - Upload speed (bps)
+- `noise_margin_download` - SNR downstream (dB)
+- `noise_margin_upload` - SNR upstream (dB)
+- `attenuation_download` - Line attenuation downstream (dB)
+- `attenuation_upload` - Line attenuation upstream (dB)
+- `crc_download` - CRC errors download
+- `crc_upload` - CRC errors upload
 
-</details>
+### Sercom Speedport Plus
+- `dsl_downstream_bps` - Download speed (bps)
+- `dsl_upstream_bps` - Upload speed (bps)
+- `snr_downstream_db` - SNR downstream (dB)
+- `snr_upstream_db` - SNR upstream (dB)
+- `attenuation_downstream_db` - Line attenuation downstream (dB)
+- `attenuation_upstream_db` - Line attenuation upstream (dB)
+- `crc_errors` - Total CRC errors
 
----
+## 🔐 Security Considerations
 
-## 🔧 Technical Stack
+- Change default Grafana credentials in `.env`
+- Keep `.env` file secure and never commit it to version control
+- Consider using Docker secrets for production deployments
+- Restrict network access to Grafana/Prometheus if exposed publicly
 
-<table>
-<tr>
-<td align="center" width="16.66%">
-<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg" width="48" height="48" alt="Python"/>
-<br><b>Python 3</b>
-<br><sub>Scraping Logic</sub>
-</td>
-<td align="center" width="16.66%">
-<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/selenium/selenium-original.svg" width="48" height="48" alt="Selenium"/>
-<br><b>Selenium</b>
-<br><sub>Browser Automation</sub>
-</td>
-<td align="center" width="16.66%">
-<img src="https://www.vectorlogo.zone/logos/prometheusio/prometheusio-icon.svg" width="48" height="48" alt="Prometheus"/>
-<br><b>Prometheus</b>
-<br><sub>Metrics Storage</sub>
-</td>
-<td align="center" width="16.66%">
-<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/grafana/grafana-original.svg" width="48" height="48" alt="Grafana"/>
-<br><b>Grafana</b>
-<br><sub>Visualization</sub>
-</td>
-<td align="center" width="16.66%">
-<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/docker/docker-original.svg" width="48" height="48" alt="Docker"/>
-<br><b>Docker</b>
-<br><sub>Containerization</sub>
-</td>
-<td align="center" width="16.66%">
-<img src="https://www.vectorlogo.zone/logos/google_chrome/google_chrome-icon.svg" width="48" height="48" alt="Chrome"/>
-<br><b>Chrome</b>
-<br><sub>Headless WebDriver</sub>
-</td>
-</tr>
-</table>
+## 📝 License
 
-### 🤔 Why Web Scraping?
-
-> [!NOTE]
-> Most consumer routers lack proper SNMP support or have severely limited implementations.
-
-**Web scraping advantages:**
-- ✅ Works with **any** router having a web UI
-- ✅ Access to **all** visible metrics (not limited by SNMP MIBs)
-- ✅ **No firmware modifications** required
-- ✅ Captures exactly what users see
-
-**Trade-offs:**
-- ⚠️ More fragile (breaks on firmware updates)
-- ⚠️ Higher resource usage than SNMP
-- ⚠️ Requires browser automation overhead
-
----
+See individual router project directories for specific licenses.
 
 ## 🤝 Contributing
 
-We welcome contributions! 🎉
-
-### Adding a New Router
-
-1. **Create directory structure:**
-   ```bash
-   mkdir Router-Model-Name/
-   cd Router-Model-Name/
-   ```
-
-2. **Implement required files:**
-   - 🐍 Python scraper script
-   - 🐳 `docker-compose.yaml`
-   - 📦 `Dockerfile`
-   - ⚙️ `prometheus.yml`
-   - 📊 Grafana dashboards
-   - 📖 Comprehensive `README.md`
-
-3. **Update main README:**
-   - Add to [Supported Routers](#-supported-routers)
-   - Update [Router Comparison](#-router-comparison) table
-
-4. **Submit PR:**
-   - Describe router model and firmware version
-   - Include screenshots of working dashboard
-   - Document any special requirements
-
-> [!TIP]
-> Use existing implementations as templates for consistency!
-
----
-
-## 📜 License
-
-This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
-
----
-
-## 🙏 Acknowledgments
-
-**Built with awesome open-source tools:**
-
-- 🐍 [Helium](https://github.com/mherrmann/helium) - Simplified Selenium wrapper
-- 📊 [Grafana Community Dashboards](https://grafana.com/grafana/dashboards/) - Inspiration & design patterns
-- 🐳 Docker Images:
-  - [`selenium/standalone-chrome`](https://hub.docker.com/r/selenium/standalone-chrome/)
-  - [`prom/prometheus`](https://hub.docker.com/r/prom/prometheus/)
-  - [`grafana/grafana`](https://hub.docker.com/r/grafana/grafana/)
-
----
-
-<div align="center">
-
-### 📊 Happy Monitoring! 🚀
-
-**For detailed setup and troubleshooting, see the README in each router's directory.**
-
-[![Star this repo](https://img.shields.io/github/stars/athamour1/cosmote-router-metrics?style=social)](https://github.com/athamour1/cosmote-router-metrics)
-
-</div>
+Contributions are welcome! Please feel free to submit a Pull Request.
