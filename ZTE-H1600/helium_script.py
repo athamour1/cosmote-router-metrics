@@ -5,6 +5,7 @@ import threading
 from helium import *
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
 
 # Load environment variables
 URL = os.getenv('ROUTER_URL')
@@ -48,17 +49,56 @@ def scrape_metrics():
     # driver = start_firefox()
 
     try:
+        print(f"Navigating to {URL}")
         go_to(URL)
-        write(USERNAME, into='Username')
-        write(PASSWORD, into='Password')
-        click('Login')
+        
+        # Wait for page to load
+        time.sleep(3)
+        
+        print("Attempting to log in...")
+        try:
+            # Try different possible field names/selectors
+            try:
+                write(USERNAME, into='Username')
+            except:
+                try:
+                    write(USERNAME, into='username')
+                except:
+                    # Try finding input by name attribute
+                    username_field = driver.find_element(By.NAME, 'Username')
+                    username_field.send_keys(USERNAME)
+            
+            try:
+                write(PASSWORD, into='Password')
+            except:
+                try:
+                    write(PASSWORD, into='password')
+                except:
+                    # Try finding input by name attribute
+                    password_field = driver.find_element(By.NAME, 'Password')
+                    password_field.send_keys(PASSWORD)
+            
+            click('Login')
+            print("Login submitted")
+        except Exception as e:
+            print(f"Login failed: {e}")
+            print("Page source for debugging:")
+            print(driver.page_source[:1000])  # Print first 1000 chars
+            raise
 
-        time.sleep(1)
-        click('Internet')
+        time.sleep(3)  # Increased wait time
+        
+        try:
+            click('Internet')
+            print("Clicked Internet tab")
+        except Exception as e:
+            print(f"Failed to click Internet: {e}")
+            raise
 
-        time.sleep(1)
+        time.sleep(2)  # Wait for metrics to load
 
         # Extract rates and store them in the metrics dictionary
+        print("Extracting metrics...")
         metrics['actual_upload'], metrics['actual_download'] = extract_rates('crate\\:0')
         metrics['attainable_upload'], metrics['attainable_download'] = extract_rates('cmaxrate\\:0')
         metrics['noise_margin_upload'], metrics['noise_margin_download'] = extract_rates('cmargin\\:0')
@@ -74,9 +114,16 @@ def scrape_metrics():
         metrics['modulation_type'] = extract_single_value('cModule_type\\:0')
         metrics['profile'] = extract_single_value('cprofile\\:0')
         metrics['link_encap'] = extract_single_value('clinkencap\\:0')
+        print("Metrics extracted successfully")
 
+    except Exception as e:
+        print(f"Error during scraping: {e}")
+        # Don't crash completely, just log the error
     finally:
-        driver.quit()
+        try:
+            driver.quit()
+        except:
+            pass
 
 # Function to run the HTTP server
 class MetricsHandler(BaseHTTPRequestHandler):
@@ -145,29 +192,21 @@ fec_upload {metrics.get('fec_upload', 0)}
 # HELP fec_download FEC errors download
 # TYPE fec_download gauge
 fec_download {metrics.get('fec_download', 0)}
-# HELP uptime xDSL connection
-# TYPE uptime gauge
-uptime {metrics.get('uptime', 0)}
-# HELP link status connection
-# TYPE link_status gauge
-link_status {metrics.get('link_status', 0)}
-# HELP modulation type xDSL connection
-# TYPE modulation_type gauge
-modulation_type {metrics.get('modulation_type', 0)}
-# HELP profile xDSL connection
-# TYPE profile gauge
-profile {metrics.get('profile', 0)}
-# HELP link_encap xDSL connection
-# TYPE link_encap gauge
-link_encap {metrics.get('link_encap', 0)}
 """
         self.wfile.write(response.encode())
 
 # Function to periodically scrape metrics
 def periodic_scrape(interval):
+    # Wait a bit before first scrape to ensure everything is ready
+    print("Waiting 10 seconds before first scrape...")
+    time.sleep(10)
+    
     while True:
-        scrape_metrics()
-        print("Done scraping !!!")
+        try:
+            scrape_metrics()
+            print("Done scraping !!!")
+        except Exception as e:
+            print(f"Scrape cycle failed: {e}")
         time.sleep(interval)
 
 # Start the HTTP server in a separate thread

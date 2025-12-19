@@ -1,4 +1,3 @@
-version: '3.8'
 
 networks:
   router_network:
@@ -8,9 +7,9 @@ services:
   router_metrics:
     build: .
     environment:
-      - ROUTER_URL=http://192.168.1.1  # Adjust this URL as needed
-      - ROUTER_USERNAME=admin
-      - ROUTER_PASSWORD=<pass>
+      - ROUTER_URL=${ROUTER_URL}
+      - ROUTER_USERNAME=${ROUTER_USERNAME}
+      - ROUTER_PASSWORD=${ROUTER_PASSWORD}
     ports:
       - 8000:8000
     restart: unless-stopped
@@ -21,6 +20,7 @@ services:
     image: prom/prometheus:latest
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml:z
+      - prometheus-data:/prometheus
     ports:
       - 9090:9090
     restart: unless-stopped
@@ -29,6 +29,13 @@ services:
 
   grafana:
     image: grafana/grafana:latest
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
+      - grafana-data:/var/lib/grafana
     ports:
       - 3000:3000
     restart: unless-stopped
@@ -36,3 +43,7 @@ services:
       - prometheus
     networks:
       - router_network
+
+volumes:
+  prometheus-data:
+  grafana-data:
